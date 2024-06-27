@@ -1,4 +1,4 @@
-export const validateCreatePostData = (req, res, next) => {
+export const validateCreatePostUpdatePutData = (req, res, next) => {
   if (!req.body.title) {
     return res.status(400).json({
       message: "400 Bad Request: Missing or invalid request data.",

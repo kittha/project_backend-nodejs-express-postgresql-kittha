@@ -1,26 +1,29 @@
 import { Router } from "express";
 import connectionPool from "../utils/db.mjs";
-import { validateCreatePostData } from "../middlewares/post.validation.mjs";
-import { validateCreatePutData } from "../middlewares/put.validation.mjs";
+import { validateCreatePostUpdatePutData } from "../middlewares/post-put.validation.mjs";
 
 const questionsRouter = Router();
 
 // CREATE
-questionsRouter.post("/", [validateCreatePostData], async (req, res) => {
-  const { title, description, category } = req.body;
-  const newQuestion = { title, description, category };
+questionsRouter.post(
+  "/",
+  [validateCreatePostUpdatePutData],
+  async (req, res) => {
+    const { title, description, category } = req.body;
+    const newQuestion = { title, description, category };
 
-  const result = await connectionPool.query(
-    `
+    const result = await connectionPool.query(
+      `
     INSERT INTO questions (title, description, category)
     VALUES ($1, $2, $3)
     `,
-    [newQuestion.title, newQuestion.description, newQuestion.category]
-  );
-  return res
-    .status(201)
-    .json({ message: "201 Created: Question created successfully." });
-});
+      [newQuestion.title, newQuestion.description, newQuestion.category]
+    );
+    return res
+      .status(201)
+      .json({ message: "201 Created: Question created successfully." });
+  }
+);
 // READ
 questionsRouter.get("/", async (req, res) => {
   const title = req.query.title ? `%${req.query.title}%` : null;
@@ -94,7 +97,7 @@ questionsRouter.get("/:questionId", async (req, res) => {
 // UPDATE
 questionsRouter.put(
   "/:questionId",
-  [validateCreatePutData],
+  [validateCreatePostUpdatePutData],
   async (req, res) => {
     try {
       const questionIdFromClient = req.params.questionId;
