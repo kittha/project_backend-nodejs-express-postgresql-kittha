@@ -276,9 +276,7 @@ This backend project is built using Node.js and Express for robust server-side J
 
 ```json
 {
-  "title": "Updated Question Title",
-  "description": "Updated question description.",
-  "category": "Updated Category"
+  "content": "This is an example answer."
 }
 ```
 
