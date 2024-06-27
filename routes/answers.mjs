@@ -51,7 +51,17 @@ answersRouter.post("/:id/answers", async (req, res) => {
 });
 
 // READ
-answersRouter.get("/:id/answers");
+answersRouter.get("/:id/answers", async (req, res) => {
+  const questionId = req.params.id;
+
+  try {
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      message: "Server could not process the request due to database issue.",
+    });
+  }
+});
 // UPDATE
 
 // DELETE
