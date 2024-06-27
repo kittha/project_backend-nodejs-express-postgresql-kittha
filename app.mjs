@@ -7,7 +7,7 @@ const port = 4000;
 
 app.use(express.json());
 app.use("/questions", questionsRouter);
-app.use("/answers", answersRouter);
+app.use("/questions", answersRouter);
 
 app.get("/test", (req, res) => {
   return res.json("Server API is working 🚀");
