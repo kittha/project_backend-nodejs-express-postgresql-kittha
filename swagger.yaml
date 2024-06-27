@@ -38,7 +38,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/Question"
+              $ref: "#/components/schemas/QuestionCreateUpdate"
       responses:
         "201":
           description: Question created successfully
@@ -69,6 +69,7 @@ paths:
               properties:
                 content:
                   type: string
+                  maxLength: 300
               required:
                 - content
       responses:
@@ -133,7 +134,7 @@ paths:
                   message:
                     type: string
                   data:
-                    $ref: "#/components/schemas/Question"
+                    $ref: "#/components/schemas/QuestionWithUpvoteDownvote"
         "404":
           description: Question not found
           content:
@@ -175,7 +176,7 @@ paths:
                   message:
                     type: string
                   data:
-                    $ref: "#/components/schemas/Question"
+                    $ref: "#/components/schemas/QuestionWithUpvoteDownvote"
         "404":
           description: Question not found
           content:
@@ -231,7 +232,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/Question"
+              $ref: "#/components/schemas/QuestionCreateUpdate"
       responses:
         "200":
           description: Question updated successfully
@@ -284,7 +285,7 @@ paths:
                   message:
                     type: string
                   data:
-                    $ref: "#/components/schemas/Answer"
+                    $ref: "#/components/schemas/AnswerWithUpvoteDownvote"
         "404":
           description: Answer not found
           content:
@@ -319,7 +320,7 @@ paths:
                   message:
                     type: string
                   data:
-                    $ref: "#/components/schemas/Answer"
+                    $ref: "#/components/schemas/AnswerWithUpvoteDownvote"
         "404":
           description: Answer not found
           content:
@@ -380,7 +381,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/UpdateAnswerRequest"
+              $ref: "#/components/schemas/AnswerCreateUpdate"
       responses:
         "200":
           description: Successfully updated the answer
@@ -452,19 +453,33 @@ components:
         updated_at:
           type: string
           format: date-time
-        upvotes:
-          type: integer
-        downvotes:
-          type: integer
 
-    Answer:
+    QuestionCreateUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 10
+          maxLength: 100
+          example: string title
+        description:
+          type: string
+          maxLength: 300
+        category:
+          type: string
+      required:
+        - title
+
+    QuestionWithUpvoteDownvote:
       type: object
       properties:
         id:
-          type: integer
-        question_id:
-          type: integer
-        content:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        category:
           type: string
         created_at:
           type: string
@@ -477,8 +492,47 @@ components:
         downvotes:
           type: integer
 
-    UpdateAnswerRequest:
+    Answer:
+      type: object
+      properties:
+        id:
+          type: string
+        question_id:
+          type: string
+        content:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    AnswerCreateUpdate:
       type: object
       properties:
         content:
           type: string
+          maxLength: 300
+      required:
+        - content
+
+    AnswerWithUpvoteDownvote:
+      type: object
+      properties:
+        id:
+          type: string
+        question_id:
+          type: string
+        content:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        upvotes:
+          type: integer
+        downvotes:
+          type: integer

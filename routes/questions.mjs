@@ -243,7 +243,7 @@ questionsRouter.get("/", async (req, res) => {
       `
         SELECT id, title, description, category, created_at, updated_at
         FROM questions
-        WHERE   (title ILIKE $1 OR $1 IS NULL) AND
+        WHERE   (title ILIKE $1 OR $1 IS NULL) OR
                 (category ILIKE $2 OR $2 IS NULL)
         `,
       [title, category]
