@@ -8,7 +8,7 @@ const connectionPool = new Pool({
   password: `${process.env.DB_PASSWORD}`,
   host: "localhost",
   port: 5432,
-  database: "techup_Build-Creating-Data-API-Assignment",
+  database: "techup_Backend-Skill-Checkpoint",
 });
 
 export default connectionPool;
