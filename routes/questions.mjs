@@ -43,6 +43,147 @@ questionsRouter.post(
     }
   }
 );
+
+questionsRouter.post("/:id/upvote", async (req, res) => {
+  const questionId = req.params.id;
+  const voteValue = 1;
+
+  try {
+    const checkIsQuestionExist = await connectionPool.query(
+      `
+        SELECT id
+        FROM questions
+        WHERE id=$1
+        `,
+      [questionId]
+    );
+
+    if (checkIsQuestionExist.rows.length === 0) {
+      return res.status(404).json({
+        message: "404 Not Found: Question not found.",
+      });
+    }
+
+    const result = await connectionPool.query(
+      `
+        INSERT INTO question_votes (question_id, vote)
+        VALUES ($1, $2)
+        RETURNING * 
+        `,
+      [questionId, voteValue]
+    );
+
+    const fetchQuestionResult = await connectionPool.query(
+      `
+        SELECT
+            q.id,
+            q.title,
+            q.description,
+            q.category,
+            q.created_at,
+            q.updated_at,
+            COALESCE(SUM(CASE WHEN qv.vote = 1 THEN 1 ELSE 0 END), 0) AS upvotes
+        FROM
+            questions q
+        LEFT JOIN
+            question_votes qv ON q.id = qv.question_id
+        WHERE
+            q.id = $1
+        GROUP BY
+            q.id;
+      `,
+      [questionId]
+    );
+    if (fetchQuestionResult.rows.length === 0) {
+      return res.status(404).json({
+        message: "404 Not Found: Question not found.",
+      });
+    }
+
+    const question = fetchQuestionResult.rows[0];
+
+    return res.status(200).json({
+      message: "200 OK: Successfully upvoted the question.",
+      data: question,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      message: "Server could not process the request due to database issue.",
+    });
+  }
+});
+
+questionsRouter.post("/:id/downvote", async (req, res) => {
+  const questionId = req.params.id;
+  const voteValue = -1;
+
+  try {
+    const checkIsQuestionExist = await connectionPool.query(
+      `
+        SELECT id
+        FROM questions
+        WHERE id=$1
+        `,
+      [questionId]
+    );
+
+    if (checkIsQuestionExist.rows.length === 0) {
+      return res.status(404).json({
+        message: "404 Not Found: Question not found.",
+      });
+    }
+
+    const result = await connectionPool.query(
+      `
+        INSERT INTO question_votes (question_id, vote)
+        VALUES ($1, $2)
+        RETURNING * 
+        `,
+      [questionId, voteValue]
+    );
+
+    const fetchQuestionResult = await connectionPool.query(
+      `
+        SELECT
+            q.id,
+            q.title,
+            q.description,
+            q.category,
+            q.created_at,
+            q.updated_at,
+            COALESCE(SUM(CASE WHEN qv.vote = -1 THEN 1 ELSE 0 END), 0) AS downvotes
+        FROM
+            questions q
+        LEFT JOIN
+            question_votes qv ON q.id = qv.question_id
+        WHERE
+            q.id = $1
+        GROUP BY
+            q.id;
+      `,
+      [questionId]
+    );
+    if (fetchQuestionResult.rows.length === 0) {
+      return res.status(404).json({
+        message: "404 Not Found: Question not found.",
+      });
+    }
+
+    const question = fetchQuestionResult.rows[0];
+
+    return res.status(200).json({
+      message: "200 OK: Successfully upvoted the question.",
+      data: question,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      message: "Server could not process the request due to database issue.",
+    });
+  }
+});
+
 // READ
 questionsRouter.get("/", async (req, res) => {
   const title = req.query.title ? `%${req.query.title}%` : null;
