@@ -1,39 +1,162 @@
 import { Router } from "express";
 import connectionPool from "../utils/db.mjs";
-import { validateCreatePostUpdatePutData } from "../middlewares/post-put.validation.mjs";
+import { validateCreateUpdateQuestion } from "../middlewares/post-put-questions.validation.mjs";
+import { validateCreateUpdateAnswer } from "../middlewares/post-put-answers.validation.mjs";
+import { rateLimiter } from "../middlewares/basic-rate-limit.mjs";
 
 const questionsRouter = Router();
 
-// CREATE
-questionsRouter.post(
-  "/",
-  [validateCreatePostUpdatePutData],
-  async (req, res) => {
-    try {
-      const { title, description, category } = req.body;
-      const newQuestion = { title, description, category };
+const checkIfQuestionExists = async (questionId) => {
+  const result = await connectionPool.query(
+    `
+        SELECT id
+        FROM questions
+        WHERE id=$1 
+        `,
+    [questionId]
+  );
+  return result.rows.length !== 0;
+};
 
-      const result = await connectionPool.query(
-        `
+// CREATE
+questionsRouter.post("/", [validateCreateUpdateQuestion], async (req, res) => {
+  try {
+    const { title, description, category } = req.body;
+    const newQuestion = { title, description, category };
+
+    const result = await connectionPool.query(
+      `
     INSERT INTO questions (title, description, category)
     VALUES ($1, $2, $3)
     RETURNING id, title, description, category, created_at, updated_at
     `,
-        [newQuestion.title, newQuestion.description, newQuestion.category]
+      [newQuestion.title, newQuestion.description, newQuestion.category]
+    );
+
+    const question = result.rows[0];
+
+    return res.status(201).json({
+      message: "201 Created: Question created successfully.",
+      data: {
+        id: question.id,
+        title: question.title,
+        description: question.description,
+        catgory: question.category,
+        created_at: question.created_at,
+        updated_at: question.updated_at,
+      },
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      message: "Server could not process the request due to database issue.",
+    });
+  }
+});
+
+questionsRouter.post(
+  "/:id/answers",
+  [validateCreateUpdateAnswer],
+  async (req, res) => {
+    const questionId = req.params.id;
+    const { content } = req.body;
+
+    if (!content) {
+      return res.status(400).json({
+        message: "400 Bad Request: Missing or invalid request data.",
+      });
+    }
+    try {
+      if (!(await checkIfQuestionExists(questionId))) {
+        return res.status(404).json({
+          message: "404 Not Found: Question not found.",
+        });
+      }
+
+      const result = await connectionPool.query(
+        `
+        INSERT INTO answers (question_id, content)
+        VALUES ($1, $2)
+        RETURNING id, question_id, content, created_at, updated_at
+        `,
+        [questionId, content]
       );
 
       const question = result.rows[0];
 
       return res.status(201).json({
-        message: "201 Created: Question created successfully.",
+        message: "201 Created: Answer created successfuly.",
         data: {
           id: question.id,
-          title: question.title,
-          description: question.description,
-          catgory: question.category,
+          question_id: question.question_id,
+          content: question.content,
           created_at: question.created_at,
           updated_at: question.updated_at,
         },
+      });
+    } catch (error) {
+      return res.status(500).json({
+        message: "Server could not process the request due to database issue.",
+      });
+    }
+  }
+);
+questionsRouter.post(
+  "/:id/upvote",
+  [rateLimiter(1, 1440000)],
+  async (req, res) => {
+    const questionId = req.params.id;
+    const voteValue = 1;
+
+    try {
+      if (!(await checkIfQuestionExists(questionId))) {
+        return res.status(404).json({
+          message: "404 Not Found: Question not found.",
+        });
+      }
+
+      await connectionPool.query(
+        `
+        INSERT INTO question_votes (question_id, vote)
+        VALUES ($1, $2)
+        RETURNING * 
+        `,
+        [questionId, voteValue]
+      );
+
+      const fetchQuestionResult = await connectionPool.query(
+        `
+        SELECT
+            q.id,
+            q.title,
+            q.description,
+            q.category,
+            q.created_at,
+            q.updated_at,
+            COALESCE(SUM(CASE WHEN qv.vote = 1 THEN 1 ELSE 0 END), 0) AS upvotes,
+            COALESCE(SUM(CASE WHEN qv.vote = -1 THEN 1 ELSE 0 END), 0) AS downvotes
+        FROM
+            questions q
+        LEFT JOIN
+            question_votes qv ON q.id = qv.question_id
+        WHERE
+            q.id = $1
+        GROUP BY
+            q.id;
+      `,
+        [questionId]
+      );
+      if (fetchQuestionResult.rows.length === 0) {
+        return res.status(404).json({
+          message: "404 Not Found: Question not found.",
+        });
+      }
+
+      const question = fetchQuestionResult.rows[0];
+
+      return res.status(200).json({
+        message: "200 OK: Successfully upvoted the question.",
+        data: question,
       });
     } catch (error) {
       console.error(error);
@@ -44,90 +167,31 @@ questionsRouter.post(
   }
 );
 
-questionsRouter.post("/:id/answers", async (req, res) => {
-  const questionId = req.params.id;
-  console.log(req.body);
-  const { content } = req.body;
+questionsRouter.post(
+  "/:id/downvote",
+  [rateLimiter(1, 1440000)],
+  async (req, res) => {
+    const questionId = req.params.id;
+    const voteValue = -1;
 
-  if (!content) {
-    return res.status(400).json({
-      message: "400 Bad Request: Missing or invalid request data.",
-    });
-  }
-  try {
-    const checkIsQuestionExist = await connectionPool.query(
-      `
-        SELECT id
-        FROM questions
-        WHERE id=$1
-        `,
-      [questionId]
-    );
+    try {
+      if (!(await checkIfQuestionExists(questionId))) {
+        return res.status(404).json({
+          message: "404 Not Found: Question not found.",
+        });
+      }
 
-    if (checkIsQuestionExist.rows.length === 0) {
-      return res.status(404).json({
-        message: "404 Not Found: Question not found.",
-      });
-    }
-
-    const result = await connectionPool.query(
-      `
-        INSERT INTO answers (question_id, content)
-        VALUES ($1, $2)
-        RETURNING id, question_id, content, created_at, updated_at
-        `,
-      [questionId, content]
-    );
-
-    const question = result.rows[0];
-
-    return res.status(201).json({
-      message: "201 Created: Answer created successfuly.",
-      data: {
-        id: question.id,
-        question_id: question.question_id,
-        content: question.content,
-        created_at: question.created_at,
-        updated_at: question.updated_at,
-      },
-    });
-  } catch (error) {
-    return res.status(500).json({
-      message: "Server could not process the request due to database issue.",
-    });
-  }
-});
-questionsRouter.post("/:id/upvote", async (req, res) => {
-  const questionId = req.params.id;
-  const voteValue = 1;
-
-  try {
-    const checkIsQuestionExist = await connectionPool.query(
-      `
-        SELECT id
-        FROM questions
-        WHERE id=$1
-        `,
-      [questionId]
-    );
-
-    if (checkIsQuestionExist.rows.length === 0) {
-      return res.status(404).json({
-        message: "404 Not Found: Question not found.",
-      });
-    }
-
-    const result = await connectionPool.query(
-      `
+      const result = await connectionPool.query(
+        `
         INSERT INTO question_votes (question_id, vote)
         VALUES ($1, $2)
         RETURNING * 
         `,
-      [questionId, voteValue]
-    );
+        [questionId, voteValue]
+      );
 
-    const fetchQuestionResult = await connectionPool.query(
-      `
+      const fetchQuestionResult = await connectionPool.query(
+        `
         SELECT
             q.id,
             q.title,
@@ -146,98 +210,28 @@ questionsRouter.post("/:id/upvote", async (req, res) => {
         GROUP BY
             q.id;
       `,
-      [questionId]
-    );
-    if (fetchQuestionResult.rows.length === 0) {
-      return res.status(404).json({
-        message: "404 Not Found: Question not found.",
+        [questionId]
+      );
+      if (fetchQuestionResult.rows.length === 0) {
+        return res.status(404).json({
+          message: "404 Not Found: Question not found.",
+        });
+      }
+
+      const question = fetchQuestionResult.rows[0];
+
+      return res.status(200).json({
+        message: "200 OK: Successfully downvoted the question.",
+        data: question,
+      });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({
+        message: "Server could not process the request due to database issue.",
       });
     }
-
-    const question = fetchQuestionResult.rows[0];
-
-    return res.status(200).json({
-      message: "200 OK: Successfully upvoted the question.",
-      data: question,
-    });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({
-      message: "Server could not process the request due to database issue.",
-    });
   }
-});
-
-questionsRouter.post("/:id/downvote", async (req, res) => {
-  const questionId = req.params.id;
-  const voteValue = -1;
-
-  try {
-    const checkIsQuestionExist = await connectionPool.query(
-      `
-        SELECT id
-        FROM questions
-        WHERE id=$1
-        `,
-      [questionId]
-    );
-
-    if (checkIsQuestionExist.rows.length === 0) {
-      return res.status(404).json({
-        message: "404 Not Found: Question not found.",
-      });
-    }
-
-    const result = await connectionPool.query(
-      `
-        INSERT INTO question_votes (question_id, vote)
-        VALUES ($1, $2)
-        RETURNING * 
-        `,
-      [questionId, voteValue]
-    );
-
-    const fetchQuestionResult = await connectionPool.query(
-      `
-        SELECT
-            q.id,
-            q.title,
-            q.description,
-            q.category,
-            q.created_at,
-            q.updated_at,
-            COALESCE(SUM(CASE WHEN qv.vote = 1 THEN 1 ELSE 0 END), 0) AS upvotes,
-            COALESCE(SUM(CASE WHEN qv.vote = -1 THEN 1 ELSE 0 END), 0) AS downvotes
-        FROM
-            questions q
-        LEFT JOIN
-            question_votes qv ON q.id = qv.question_id
-        WHERE
-            q.id = $1
-        GROUP BY
-            q.id;
-      `,
-      [questionId]
-    );
-    if (fetchQuestionResult.rows.length === 0) {
-      return res.status(404).json({
-        message: "404 Not Found: Question not found.",
-      });
-    }
-
-    const question = fetchQuestionResult.rows[0];
-
-    return res.status(200).json({
-      message: "200 OK: Successfully downvoted the question.",
-      data: question,
-    });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({
-      message: "Server could not process the request due to database issue.",
-    });
-  }
-});
+);
 
 // READ
 questionsRouter.get("/", async (req, res) => {
@@ -359,21 +353,12 @@ questionsRouter.get("/:id/answers", async (req, res) => {
 // UPDATE
 questionsRouter.put(
   "/:questionId",
-  [validateCreatePostUpdatePutData],
+  [validateCreateUpdateQuestion],
   async (req, res) => {
     try {
       const questionIdFromClient = req.params.questionId;
 
-      const checkIsQuestionExist = await connectionPool.query(
-        `
-        SELECT *
-        FROM questions
-        WHERE id=$1
-        `,
-        [questionIdFromClient]
-      );
-
-      if (checkIsQuestionExist.rows.length === 0) {
+      if (!(await checkIfQuestionExists(questionIdFromClient))) {
         return res.status(404).json({
           message: "404 Not Found: Question not found",
         });
@@ -426,16 +411,7 @@ questionsRouter.delete("/:questionId", async (req, res) => {
   try {
     const questionIdFromClient = req.params.questionId;
 
-    const checkIsQuestionExist = await connectionPool.query(
-      `
-        SELECT *
-        FROM questions
-        WHERE id=$1
-        `,
-      [questionIdFromClient]
-    );
-
-    if (checkIsQuestionExist.rows.length === 0) {
+    if (!(await checkIfQuestionExists(questionIdFromClient))) {
       return res.status(404).json({
         message: "404 Not Found: Question not found",
       });
@@ -443,7 +419,7 @@ questionsRouter.delete("/:questionId", async (req, res) => {
 
     // create PostgreSQL script: table already linked questions with answers and using ON DELETE CASCADE
     // When delete the question, the answers will be deleted automatically.
-    const result = await connectionPool.query(
+    await connectionPool.query(
       `
         DELETE
         FROM questions
