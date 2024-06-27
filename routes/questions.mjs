@@ -9,19 +9,26 @@ questionsRouter.post(
   "/",
   [validateCreatePostUpdatePutData],
   async (req, res) => {
-    const { title, description, category } = req.body;
-    const newQuestion = { title, description, category };
+    try {
+      const { title, description, category } = req.body;
+      const newQuestion = { title, description, category };
 
-    const result = await connectionPool.query(
-      `
+      const result = await connectionPool.query(
+        `
     INSERT INTO questions (title, description, category)
     VALUES ($1, $2, $3)
     `,
-      [newQuestion.title, newQuestion.description, newQuestion.category]
-    );
-    return res
-      .status(201)
-      .json({ message: "201 Created: Question created successfully." });
+        [newQuestion.title, newQuestion.description, newQuestion.category]
+      );
+      return res
+        .status(201)
+        .json({ message: "201 Created: Question created successfully." });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({
+        message: "Server could not process the request due to database issue.",
+      });
+    }
   }
 );
 // READ
@@ -59,7 +66,7 @@ questionsRouter.get("/", async (req, res) => {
   } catch (error) {
     console.error(error);
     return res.status(500).json({
-      message: "Server could not fetch the query due to database issue.",
+      message: "Server could not process the request due to database issue.",
     });
   }
 });
@@ -90,7 +97,7 @@ questionsRouter.get("/:questionId", async (req, res) => {
   } catch (error) {
     console.error(error);
     return res.status(500).json({
-      message: "Server could not fetch the question due to database issue.",
+      message: "Server could not process the request due to database issue.",
     });
   }
 });
@@ -143,7 +150,7 @@ questionsRouter.put(
     } catch (error) {
       console.error(error);
       return res.status(500).json({
-        message: "Server could not update the question due to database issue.",
+        message: "Server could not process the request due to database issue.",
       });
     }
   }
@@ -184,7 +191,7 @@ questionsRouter.delete("/:questionId", async (req, res) => {
   } catch (error) {
     console.error(error);
     return res.status(500).json({
-      message: "Server could not delete the question due to database issue.",
+      message: "Server could not process the request due to database issue.",
     });
   }
 });
