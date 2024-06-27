@@ -55,6 +55,25 @@ answersRouter.get("/:id/answers", async (req, res) => {
   const questionId = req.params.id;
 
   try {
+    const result = await connectionPool.query(
+      `
+        SELECT *
+        FROM answers
+        WHERE question_id=$1
+        `,
+      [questionId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        message: "404 Not Found: Question not found.",
+      });
+    }
+
+    return res.status(200).json({
+      message: "200 OK: Successfully retrieved the answers.",
+      data: result.rows,
+    });
   } catch (error) {
     console.error(error);
     return res.status(500).json({

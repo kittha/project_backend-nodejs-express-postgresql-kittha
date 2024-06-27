@@ -37,12 +37,6 @@ questionsRouter.get("/", async (req, res) => {
   const category = req.query.category ? `%${req.query.category}%` : null;
 
   try {
-    if (!title && !category) {
-      return res.status(400).json({
-        message: "400 Bad Request: Invalid query parameters.",
-      });
-    }
-
     const result = await connectionPool.query(
       `
         SELECT *
