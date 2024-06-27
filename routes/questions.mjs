@@ -44,6 +44,59 @@ questionsRouter.post(
   }
 );
 
+questionsRouter.post("/:id/answers", async (req, res) => {
+  const questionId = req.params.id;
+  console.log(req.body);
+  const { content } = req.body;
+
+  if (!content) {
+    return res.status(400).json({
+      message: "400 Bad Request: Missing or invalid request data.",
+    });
+  }
+  try {
+    const checkIsQuestionExist = await connectionPool.query(
+      `
+        SELECT id
+        FROM questions
+        WHERE id=$1
+        `,
+      [questionId]
+    );
+
+    if (checkIsQuestionExist.rows.length === 0) {
+      return res.status(404).json({
+        message: "404 Not Found: Question not found.",
+      });
+    }
+
+    const result = await connectionPool.query(
+      `
+        INSERT INTO answers (question_id, content)
+        VALUES ($1, $2)
+        RETURNING id, question_id, content, created_at, updated_at
+        `,
+      [questionId, content]
+    );
+
+    const question = result.rows[0];
+
+    return res.status(201).json({
+      message: "201 Created: Answer created successfuly.",
+      data: {
+        id: question.id,
+        question_id: question.question_id,
+        content: question.content,
+        created_at: question.created_at,
+        updated_at: question.updated_at,
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Server could not process the request due to database issue.",
+    });
+  }
+});
 questionsRouter.post("/:id/upvote", async (req, res) => {
   const questionId = req.params.id;
   const voteValue = 1;
@@ -82,7 +135,8 @@ questionsRouter.post("/:id/upvote", async (req, res) => {
             q.category,
             q.created_at,
             q.updated_at,
-            COALESCE(SUM(CASE WHEN qv.vote = 1 THEN 1 ELSE 0 END), 0) AS upvotes
+            COALESCE(SUM(CASE WHEN qv.vote = 1 THEN 1 ELSE 0 END), 0) AS upvotes,
+            COALESCE(SUM(CASE WHEN qv.vote = -1 THEN 1 ELSE 0 END), 0) AS downvotes
         FROM
             questions q
         LEFT JOIN
@@ -152,6 +206,7 @@ questionsRouter.post("/:id/downvote", async (req, res) => {
             q.category,
             q.created_at,
             q.updated_at,
+            COALESCE(SUM(CASE WHEN qv.vote = 1 THEN 1 ELSE 0 END), 0) AS upvotes,
             COALESCE(SUM(CASE WHEN qv.vote = -1 THEN 1 ELSE 0 END), 0) AS downvotes
         FROM
             questions q
@@ -173,7 +228,7 @@ questionsRouter.post("/:id/downvote", async (req, res) => {
     const question = fetchQuestionResult.rows[0];
 
     return res.status(200).json({
-      message: "200 OK: Successfully upvoted the question.",
+      message: "200 OK: Successfully downvoted the question.",
       data: question,
     });
   } catch (error) {
@@ -256,6 +311,43 @@ questionsRouter.get("/:questionId", async (req, res) => {
         created_at: question.created_at,
         updated_at: question.updated_at,
       },
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      message: "Server could not process the request due to database issue.",
+    });
+  }
+});
+
+questionsRouter.get("/:id/answers", async (req, res) => {
+  const questionId = req.params.id;
+
+  try {
+    const result = await connectionPool.query(
+      `
+        SELECT id, question_id, content, created_at, updated_at
+        FROM answers
+        WHERE question_id=$1
+        `,
+      [questionId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        message: "404 Not Found: Question not found.",
+      });
+    }
+
+    return res.status(200).json({
+      message: "200 OK: Successfully retrieved the answers.",
+      data: result.rows.map((question) => ({
+        id: question.id,
+        question_id: question.question_id,
+        content: question.content,
+        created_at: question.created_at,
+        updated_at: question.updated_at,
+      })),
     });
   } catch (error) {
     console.error(error);

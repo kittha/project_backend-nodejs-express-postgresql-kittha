@@ -7,10 +7,10 @@ const app = express();
 const port = 4000;
 
 app.use(express.json());
-const limiter = rateLimiter(5, 60000);
+const limiter = rateLimiter(50, 60000);
 app.use(limiter);
 app.use("/questions", questionsRouter);
-app.use("/questions", answersRouter);
+app.use("/answers", answersRouter);
 
 app.get("/test", (req, res) => {
   return res.json("Server API is working 🚀");
