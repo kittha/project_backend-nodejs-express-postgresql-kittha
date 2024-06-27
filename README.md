@@ -33,8 +33,6 @@ This backend project is built using Node.js and Express for robust server-side J
   - [Answer Schema](#item-seventeen)
 - [Installation](#item-eighteen)
 - [Usage](#item-nineteen)
-- [License](#item-twenty)
-- [Contributing](#item-twentyone)
 
 <a id="item-one"></a>
 
@@ -374,10 +372,3 @@ npm start
 ## Usage
 
 Ensure the server is running after installation. Use a tool like Postman, Swagger or curl to interact with the API endpoints as documented.
-<a id="item-twenty"></a>
-
-## License
-
-<a id="item-twentyone"></a>
-
-## Contributing
