@@ -34,14 +34,22 @@ answersRouter.post("/:id/answers", async (req, res) => {
       `
         INSERT INTO answers (question_id, content)
         VALUES ($1, $2)
-        RETURNING *
+        RETURNING id, question_id, content, created_at, updated_at
         `,
       [questionId, content]
     );
 
+    const question = result.rows[0];
+
     return res.status(201).json({
       message: "201 Created: Answer created successfuly.",
-      data: result.rows[0],
+      data: {
+        id: question.id,
+        question_id: question.question_id,
+        content: question.content,
+        created_at: question.created_at,
+        updated_at: question.updated_at,
+      },
     });
   } catch (error) {
     return res.status(500).json({
@@ -57,7 +65,7 @@ answersRouter.get("/:id/answers", async (req, res) => {
   try {
     const result = await connectionPool.query(
       `
-        SELECT *
+        SELECT id, question_id, content, created_at, updated_at
         FROM answers
         WHERE question_id=$1
         `,
@@ -72,7 +80,13 @@ answersRouter.get("/:id/answers", async (req, res) => {
 
     return res.status(200).json({
       message: "200 OK: Successfully retrieved the answers.",
-      data: result.rows,
+      data: result.rows.map((question) => ({
+        id: question.id,
+        question_id: question.question_id,
+        content: question.content,
+        created_at: question.created_at,
+        updated_at: question.updated_at,
+      })),
     });
   } catch (error) {
     console.error(error);
