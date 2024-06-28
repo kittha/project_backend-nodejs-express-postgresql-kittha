@@ -39,6 +39,15 @@ paths:
                 properties:
                   message:
                     type: string
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
     post:
       summary: Create a new question
       description: Create a new question.
@@ -55,6 +64,15 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Question"
+        "400":
+          description: Bad request - Missing or invalid request data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
         "500":
           description: Server error
           content:
@@ -235,6 +253,15 @@ paths:
                 properties:
                   message:
                     type: string
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
     put:
       summary: Update a question by ID
       description: Update a question by its ID.
@@ -258,6 +285,15 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Question"
+        "400":
+          description: Bad request - Missing or invalid request data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
         "404":
           description: Question not found
           content:
@@ -465,6 +501,15 @@ paths:
                     type: string
                   data:
                     $ref: "#/components/schemas/Answer"
+        "400":
+          description: Bad request - Missing or invalid request data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
         "404":
           description: Answer not found
           content:
