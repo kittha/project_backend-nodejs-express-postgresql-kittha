@@ -19,44 +19,48 @@ const checkIfQuestionExists = async (questionId) => {
 };
 
 // CREATE
-questionsRouter.post("/", [validateCreateUpdateQuestion], async (req, res) => {
-  try {
-    const { title, description, category } = req.body;
-    const newQuestion = { title, description, category };
+questionsRouter.post(
+  "/",
+  [validateCreateUpdateQuestion, rateLimiter(10, 60000)],
+  async (req, res) => {
+    try {
+      const { title, description, category } = req.body;
+      const newQuestion = { title, description, category };
 
-    const result = await connectionPool.query(
-      `
+      const result = await connectionPool.query(
+        `
     INSERT INTO questions (title, description, category)
     VALUES ($1, $2, $3)
     RETURNING id, title, description, category, created_at, updated_at
     `,
-      [newQuestion.title, newQuestion.description, newQuestion.category]
-    );
+        [newQuestion.title, newQuestion.description, newQuestion.category]
+      );
 
-    const question = result.rows[0];
+      const question = result.rows[0];
 
-    return res.status(201).json({
-      message: "201 Created: Question created successfully.",
-      data: {
-        id: question.id,
-        title: question.title,
-        description: question.description,
-        catgory: question.category,
-        created_at: question.created_at,
-        updated_at: question.updated_at,
-      },
-    });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({
-      message: "Server could not process the request due to database issue.",
-    });
+      return res.status(201).json({
+        message: "201 Created: Question created successfully.",
+        data: {
+          id: question.id,
+          title: question.title,
+          description: question.description,
+          catgory: question.category,
+          created_at: question.created_at,
+          updated_at: question.updated_at,
+        },
+      });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({
+        message: "Server could not process the request due to database issue.",
+      });
+    }
   }
-});
+);
 
 questionsRouter.post(
   "/:id/answers",
-  [validateCreateUpdateAnswer],
+  [validateCreateUpdateAnswer, rateLimiter(10, 60000)],
   async (req, res) => {
     const questionId = req.params.id;
     const { content } = req.body;
