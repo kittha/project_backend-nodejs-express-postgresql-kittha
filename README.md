@@ -312,6 +312,31 @@ This backend project is built using Node.js and Express for robust server-side J
 
 ### Question Schema
 
+#### Question
+
+```json
+{
+  "id": "string",
+  "title": "string",
+  "description": "string",
+  "category": "string",
+  "created_at": "string (date-time)",
+  "updated_at": "string (date-time)"
+}
+```
+
+#### QuestionCreateUpdate
+
+```json
+{
+  "title": "string",
+  "description": "string",
+  "category": "string"
+}
+```
+
+#### QuestionWithUpvoteDownvote
+
 ```json
 {
   "id": "string",
@@ -328,6 +353,28 @@ This backend project is built using Node.js and Express for robust server-side J
 <a id="item-seventeen"></a>
 
 ### Answer Schema
+
+#### Answer
+
+```json
+{
+  "id": "string",
+  "question_id": "string",
+  "content": "string",
+  "created_at": "string (date-time)",
+  "updated_at": "string (date-time)"
+}
+```
+
+#### AnswerCreateUpdate
+
+```json
+{
+  "content": "string"
+}
+```
+
+#### AnswerWithUpvoteDownvote
 
 ```json
 {
