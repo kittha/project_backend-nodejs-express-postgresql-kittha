@@ -2,6 +2,9 @@ openapi: 3.0.0
 info:
   title: Questions and Answers API
   version: 1.0.0
+  contact:
+    name: Kittanut Thammapibaljit
+    url: https://github.com/kittha
 paths:
   /questions:
     get:
@@ -29,7 +32,13 @@ paths:
                   $ref: "#/components/schemas/Question"
         "404":
           description: Questions not found
-
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
     post:
       summary: Create a new question
       description: Create a new question.
@@ -48,7 +57,13 @@ paths:
                 $ref: "#/components/schemas/Question"
         "500":
           description: Server error
-
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
   /questions/{id}/answers:
     post:
       summary: Create an answer for a question
@@ -111,7 +126,6 @@ paths:
                 properties:
                   message:
                     type: string
-
   /questions/{id}/upvote:
     post:
       summary: Upvote a question
@@ -153,7 +167,6 @@ paths:
                 properties:
                   message:
                     type: string
-
   /questions/{id}/downvote:
     post:
       summary: Downvote a question
@@ -195,7 +208,6 @@ paths:
                 properties:
                   message:
                     type: string
-
   /questions/{id}:
     get:
       summary: Get a question by ID
@@ -216,7 +228,13 @@ paths:
                 $ref: "#/components/schemas/Question"
         "404":
           description: Question not found
-
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
     put:
       summary: Update a question by ID
       description: Update a question by its ID.
@@ -242,9 +260,22 @@ paths:
                 $ref: "#/components/schemas/Question"
         "404":
           description: Question not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
         "500":
           description: Server error
-
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
     delete:
       summary: Delete a question by ID
       description: Delete a question by its ID.
@@ -258,11 +289,31 @@ paths:
       responses:
         "200":
           description: Question deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
         "404":
           description: Question not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
         "500":
           description: Server error
-
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
   /answers/{id}/upvote:
     post:
       summary: Upvote an answer
@@ -295,9 +346,15 @@ paths:
                 properties:
                   message:
                     type: string
-      requestBody:
-        content: {}
-
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
   /answers/{id}/downvote:
     post:
       summary: Downvote an answer
@@ -330,9 +387,15 @@ paths:
                 properties:
                   message:
                     type: string
-      requestBody:
-        content: {}
-
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
   /answers/{id}:
     get:
       summary: Get answer by ID
@@ -365,7 +428,15 @@ paths:
                 properties:
                   message:
                     type: string
-
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
     put:
       summary: Update answer by ID
       description: Update an answer by its ID.
@@ -403,7 +474,15 @@ paths:
                 properties:
                   message:
                     type: string
-
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
     delete:
       summary: Delete answer by ID
       description: Delete an answer by its ID.
@@ -433,7 +512,15 @@ paths:
                 properties:
                   message:
                     type: string
-
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
 components:
   schemas:
     Question:
@@ -453,7 +540,6 @@ components:
         updated_at:
           type: string
           format: date-time
-
     QuestionCreateUpdate:
       type: object
       properties:
@@ -461,7 +547,6 @@ components:
           type: string
           minLength: 10
           maxLength: 100
-          example: string
         description:
           type: string
           maxLength: 300
@@ -469,7 +554,6 @@ components:
           type: string
       required:
         - title
-
     QuestionWithUpvoteDownvote:
       type: object
       properties:
@@ -491,7 +575,6 @@ components:
           type: integer
         downvotes:
           type: integer
-
     Answer:
       type: object
       properties:
@@ -507,17 +590,14 @@ components:
         updated_at:
           type: string
           format: date-time
-
     AnswerCreateUpdate:
       type: object
       properties:
         content:
           type: string
           maxLength: 300
-          example: string
       required:
         - content
-
     AnswerWithUpvoteDownvote:
       type: object
       properties:
