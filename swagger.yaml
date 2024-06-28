@@ -440,7 +440,7 @@ paths:
         - in: path
           name: id
           schema:
-            type: integer
+            type: string
           required: true
           description: ID of the answer to retrieve
       responses:
@@ -573,18 +573,24 @@ components:
       properties:
         id:
           type: string
+          description: Unique identifier for the question.
         title:
           type: string
+          description: Title of the question.
         description:
           type: string
+          description: Description of the question.
         category:
           type: string
+          description: Category of the question.
         created_at:
           type: string
           format: date-time
+          description: Date and time when the question was created.
         updated_at:
           type: string
           format: date-time
+          description: Date and time when the question was last updated.
     QuestionCreateUpdate:
       type: object
       properties:
@@ -592,11 +598,14 @@ components:
           type: string
           minLength: 10
           maxLength: 100
+          description: Title of the question to be created or updated.
         description:
           type: string
           maxLength: 300
+          description: Description of the question to be created or updated.
         category:
           type: string
+          description: Category of the question to be created or updated.
       required:
         - title
     QuestionWithUpvoteDownvote:
@@ -604,43 +613,57 @@ components:
       properties:
         id:
           type: string
+          description: Unique identifier for the question.
         title:
           type: string
+          description: Title of the question.
         description:
           type: string
+          description: Description of the question.
         category:
           type: string
+          description: Category of the question.
         created_at:
           type: string
           format: date-time
+          description: Date and time when the question was created.
         updated_at:
           type: string
           format: date-time
+          description: Date and time when the question was last updated.
         upvotes:
           type: integer
+          description: Number of upvotes for the question.
         downvotes:
           type: integer
+          description: Number of downvotes for the question.
     Answer:
       type: object
       properties:
         id:
           type: string
+          description: Unique identifier for the answer.
         question_id:
           type: string
+          description: ID of the question to which the answer belongs.
         content:
           type: string
+          description: Content of the answer.
         created_at:
           type: string
           format: date-time
+          description: Date and time when the answer was created.
         updated_at:
           type: string
           format: date-time
+          description: Date and time when the answer was last updated.
     AnswerCreateUpdate:
       type: object
       properties:
         content:
           type: string
           maxLength: 300
+          description: Content of the answer to be created or updated.
       required:
         - content
     AnswerWithUpvoteDownvote:
@@ -648,17 +671,24 @@ components:
       properties:
         id:
           type: string
+          description: Unique identifier for the answer.
         question_id:
           type: string
+          description: ID of the question to which the answer belongs.
         content:
           type: string
+          description: Content of the answer.
         created_at:
           type: string
           format: date-time
+          description: Date and time when the answer was created.
         updated_at:
           type: string
           format: date-time
+          description: Date and time when the answer was last updated.
         upvotes:
           type: integer
+          description: Number of upvotes for the answer.
         downvotes:
           type: integer
+          description: Number of downvotes for the answer.
