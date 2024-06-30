@@ -1,5 +1,4 @@
 import connectionPool from "../utils/db.mjs";
-import { validateCreateUpdateAnswer } from "../middlewares/post-put-answers.validation.mjs";
 
 const checkIfAnswerExists = async (answerId) => {
   const result = await connectionPool.query(

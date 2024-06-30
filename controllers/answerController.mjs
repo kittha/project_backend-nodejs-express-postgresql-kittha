@@ -4,10 +4,6 @@ import {
   updateAnswer as updateAnswerFromModel,
   deleteAnswer as deleteAnswerFromModel,
 } from "../models/answersModel.mjs";
-import {
-  formatAnswer,
-  formatAnswerWithUpvoteDownvote,
-} from "../utils/formatters.mjs";
 
 // GET
 export const getAnswerById = async (req, res) => {
@@ -84,7 +80,7 @@ export const handleAnswerDownvote = async (req, res) => {
 };
 
 // PUT
-export const updateAnswer = async (req) => {
+export const updateAnswer = async (req, res) => {
   try {
     const result = await updateAnswerFromModel(req);
 

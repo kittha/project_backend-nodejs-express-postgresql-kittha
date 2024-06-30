@@ -18,15 +18,24 @@ export const getAllQuestions = async (req) => {
   const category = req.query.category ? `%${req.query.category}%` : null;
 
   try {
-    const result = await connectionPool.query(
-      `
-        SELECT id, title, description, category, created_at, updated_at
-        FROM questions
-        WHERE   (title ILIKE $1 OR $1 IS NULL) OR
-                (category ILIKE $2 OR $2 IS NULL)
-        `,
-      [title, category]
-    );
+    let query = `
+      SELECT id, title, description, category, created_at, updated_at
+      FROM questions
+      WHERE 1=1`;
+
+    const queryParams = [];
+
+    if (title !== null) {
+      query += ` AND title ILIKE $${queryParams.length + 1}`;
+      queryParams.push(title);
+    }
+
+    if (category !== null) {
+      query += ` AND category ILIKE $${queryParams.length + 1}`;
+      queryParams.push(category);
+    }
+
+    const result = await connectionPool.query(query, queryParams);
 
     if (result.rows.length === 0) {
       return false;
@@ -113,9 +122,9 @@ export const createQuestion = async (reqBodyData) => {
   }
 };
 
-export const createAnswerByQuestionId = async (id) => {
+export const createAnswerByQuestionId = async (req) => {
   try {
-    const questionId = id;
+    const questionId = req.params.id;
 
     if (!(await checkIfQuestionExists(questionId))) {
       return false;
@@ -127,7 +136,7 @@ export const createAnswerByQuestionId = async (id) => {
         VALUES ($1, $2)
         RETURNING id, question_id, content, created_at, updated_at
         `,
-      [questionId, content]
+      [questionId, req.body.content]
     );
 
     const answer = result.rows[0];
@@ -192,7 +201,7 @@ export const handleQuestionVote = async (id, voteValue) => {
 // PUT
 export const updateQuestion = async (req) => {
   try {
-    const questionIdFromClient = req.params.questionId;
+    const questionIdFromClient = req.params.id;
 
     if (!(await checkIfQuestionExists(questionIdFromClient))) {
       return false;

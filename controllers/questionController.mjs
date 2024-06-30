@@ -108,9 +108,9 @@ export const createQuestion = async (req, res) => {
   }
 };
 
-export const createAnswerByQuestionId = async (req) => {
+export const createAnswerByQuestionId = async (req, res) => {
   try {
-    const answer = await createAnswerByQuestionIdFromModel(req.params.id);
+    const answer = await createAnswerByQuestionIdFromModel(req);
 
     if (!answer) {
       return res.status(404).json({
