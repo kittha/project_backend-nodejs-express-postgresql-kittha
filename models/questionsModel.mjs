@@ -218,6 +218,11 @@ export const updateQuestion = async (req) => {
         updatedQuestion.category,
       ]
     );
+
+    if (result.rowCount === 0) {
+      return false;
+    }
+
     const updatedQuestionResult = result.rows[0];
 
     return updatedQuestionResult;

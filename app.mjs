@@ -4,7 +4,7 @@ import yaml from "js-yaml";
 import swaggerUi from "swagger-ui-express";
 import { rateLimiter } from "./middlewares/basic-rate-limit.mjs";
 import questionsRouter from "./routes/questionsRoutes.mjs";
-import answersRouter from "./routes/answers.mjs";
+import answersRouter from "./routes/answersRoutes.mjs";
 
 const app = express();
 const port = 4000;
