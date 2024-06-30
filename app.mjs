@@ -3,7 +3,7 @@ import fs from "fs";
 import yaml from "js-yaml";
 import swaggerUi from "swagger-ui-express";
 import { rateLimiter } from "./middlewares/basic-rate-limit.mjs";
-import questionsRouter from "./routes/questions.mjs";
+import questionsRouter from "./routes/questionsRoutes.mjs";
 import answersRouter from "./routes/answers.mjs";
 
 const app = express();
@@ -14,8 +14,7 @@ const swaggerDocument = yaml.load(yamlFile);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.use(express.json());
-const limiter = rateLimiter(50, 60000);
-app.use(limiter);
+app.use(rateLimiter(50, 60000));
 
 app.use("/questions", questionsRouter);
 app.use("/answers", answersRouter);
