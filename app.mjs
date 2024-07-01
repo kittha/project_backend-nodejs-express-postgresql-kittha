@@ -4,7 +4,7 @@ import swaggerUi from "swagger-ui-express";
 import { rateLimiter } from "./middlewares/basic-rate-limit.mjs";
 import questionsRouter from "./routes/questionsRoutes.mjs";
 import answersRouter from "./routes/answersRoutes.mjs";
-import authRoutes from "./routes/authRoutes.mjs";
+import authRouter from "./routes/authRouter.mjs";
 import requestLogger from "./middlewares/loggerMiddleware.mjs";
 import logger from "./utils/logger.mjs";
 import errorHandler from "./middlewares/errorHandler.mjs";
@@ -21,7 +21,7 @@ app.use(requestLogger);
 const swaggerDocument = await loadSwaggerDocument("./swagger.yaml");
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
-app.use("/auth", authRoutes);
+app.use("/auth", authRouter);
 app.use("/questions", questionsRouter);
 app.use("/answers", answersRouter);
 
