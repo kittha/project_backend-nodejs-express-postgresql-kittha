@@ -19,12 +19,4 @@ function formatAnswer(answer) {
   };
 }
 
-function formatAnswerWithUpvoteDownvote(answer, aggregatedVoteData) {
-  return {
-    ...formatAnswer(answer),
-    upvotes: aggregatedVoteData.total_upvotes || 0,
-    downvotes: aggregatedVoteData.total_downvotes || 0,
-  };
-}
-
-export { formatQuestion, formatAnswer, formatAnswerWithUpvoteDownvote };
+export { formatQuestion, formatAnswer };
