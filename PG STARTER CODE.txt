@@ -3,6 +3,8 @@ DROP TABLE IF EXISTS question_votes CASCADE;
 DROP TABLE IF EXISTS answer_votes CASCADE;
 DROP TABLE IF EXISTS answers CASCADE;
 DROP TABLE IF EXISTS questions CASCADE;
+DROP TABLE IF EXISTS users CASCADE;
+DROP TABLE IF EXISTS refresh_tokens CASCADE;
 
 -- สร้างตาราง questions
 CREATE TABLE IF NOT EXISTS questions (
@@ -50,6 +52,16 @@ CREATE TABLE users (
     name VARCHAR(100),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- สร้างตาราง refresh_tokens table
+CREATE TABLE IF NOT EXISTS refresh_tokens (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    token TEXT NOT NULL,
+    expires_at TIMESTAMPTZ NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- สร้างข้อมูลตัวอย่างในตาราง questions
@@ -152,6 +164,20 @@ BEGIN
                 WHEN RANDOM() > 0.5 THEN 1
                 ELSE -1
             END
+        );
+    END LOOP;
+END
+$$;
+
+-- สร้างข้อมูลตัวอย่างในตาราง refresh_tokens
+DO $$
+BEGIN
+    FOR i IN 1..10 LOOP
+        INSERT INTO refresh_tokens (user_id, token, expires_at)
+        VALUES (
+            (SELECT id FROM users ORDER BY RANDOM() LIMIT 1),
+            md5(random()::text), -- Using md5 to generate a simple token for demonstration
+            NOW() + interval '30 days' -- Tokens expire in 30 days from now
         );
     END LOOP;
 END
