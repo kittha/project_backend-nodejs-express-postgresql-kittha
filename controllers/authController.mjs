@@ -2,6 +2,11 @@ import { generateToken } from "../utils/jwtUtils.mjs";
 import bcrypt from "bcrypt";
 import { createUser, findUserByUsername } from "../models/userModel.mjs";
 import logger from "../utils/logger.mjs";
+// **********
+// DEBUGGER ZONE: TO INSPECT OUTGOING JWT Token
+// import "dotenv/config";
+// import jwt from "jsonwebtoken";
+// **********
 
 export const register = async (req, res) => {
   const { username, password } = req.body;
@@ -24,6 +29,7 @@ export const login = async (req, res) => {
   const { username, password } = req.body;
   try {
     const user = await findUserByUsername(username);
+
     if (!user) {
       logger.info(`Login failed: User '${username}' not found`);
       // OWASP guidelines recommend that app should respond with generic error message!
@@ -38,6 +44,14 @@ export const login = async (req, res) => {
     }
 
     const token = generateToken(user);
+
+    // *****
+    // DEBUGGER ZONE: TO INSPECT OUTGOING JWT Token
+    // jwt.verify(token, process.env.SRV_PRIVATE_KEY, (err, decoded) => {
+    //   console.log(decoded);
+    // });
+    // *****
+
     logger.info(`User '${username}' logged in successfully`);
     return res.status(200).json({ token });
   } catch (error) {
