@@ -2,9 +2,12 @@
 import * as pg from "pg";
 import "dotenv/config";
 const { Pool } = pg.default;
+import logger from "./logger.mjs";
+
+let connectionPool;
 
 try {
-  const connectionPool = new Pool({
+  connectionPool = new Pool({
     user: `${process.env.DB_USERNAME}`,
     password: `${process.env.DB_PASSWORD}`,
     host: "localhost",
@@ -12,7 +15,7 @@ try {
     database: "techup_Backend-Skill-Checkpoint",
   });
 } catch (error) {
-  loggers.error(`Error creating database connection pool: ${error.message}`);
+  logger.error(`Error creating database connection pool: ${error.message}`);
   process.exit(-1);
 }
 
